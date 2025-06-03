@@ -11,14 +11,23 @@ class CategoriesScreen extends StatefulWidget {
   State<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends State<CategoriesScreen> {
+class _CategoriesScreenState extends State<CategoriesScreen>
+    with SingleTickerProviderStateMixin {
   List<Category> _categories = [];
   bool _isLoading = true;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _initializeDatabase();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeDatabase() async {
@@ -160,6 +169,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('الفئات'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'المقرر العلمي'),
+            Tab(text: 'المقرر المهاري العملي'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.restore),
@@ -178,67 +194,79 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _categories.isEmpty
-          ? const Center(child: Text('لا توجد فئات متاحة'))
-          : ListView.builder(
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isCompleted = _isCategoryCompleted(category);
-
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  color: isCompleted ? Colors.green.shade50 : null,
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.folder,
-                      color: isCompleted ? Colors.green.shade700 : null,
-                    ),
-                    title: Text(
-                      category.name,
-                      style: TextStyle(
-                        color: isCompleted ? Colors.green.shade700 : null,
-                        fontWeight: isCompleted ? FontWeight.bold : null,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '${category.lessons.length} دروس',
-                      style: TextStyle(
-                        color: isCompleted ? Colors.green.shade700 : null,
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _deleteCategory(category),
-                          tooltip: 'حذف الفئة',
-                        ),
-                        const Icon(Icons.arrow_forward_ios),
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              CategoryLessonsScreen(category: category),
-                        ),
-                      ).then((_) => _loadCategories());
-                    },
-                  ),
-                );
-              },
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildCategoryList('المقرر العلمي'),
+                _buildCategoryList('المقرر المهاري العملي'),
+              ],
             ),
     );
   }
 
+  Widget _buildCategoryList(String type) {
+    final filteredCategories = _categories
+        .where((c) => c.type == type)
+        .toList();
+
+    return filteredCategories.isEmpty
+        ? Center(child: Text('لا توجد فئات من $type'))
+        : ListView.builder(
+            itemCount: filteredCategories.length,
+            itemBuilder: (context, index) {
+              final category = filteredCategories[index];
+              final isCompleted = _isCategoryCompleted(category);
+
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: isCompleted ? Colors.green.shade50 : null,
+                child: ListTile(
+                  leading: Icon(
+                    Icons.folder,
+                    color: isCompleted ? Colors.green.shade700 : null,
+                  ),
+                  title: Text(
+                    category.name,
+                    style: TextStyle(
+                      color: isCompleted ? Colors.green.shade700 : null,
+                      fontWeight: isCompleted ? FontWeight.bold : null,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${category.lessons.length} دروس',
+                    style: TextStyle(
+                      color: isCompleted ? Colors.green.shade700 : null,
+                    ),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteCategory(category),
+                        tooltip: 'حذف الفئة',
+                      ),
+                      const Icon(Icons.arrow_forward_ios),
+                    ],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CategoryLessonsScreen(category: category),
+                      ),
+                    ).then((_) => _loadCategories());
+                  },
+                ),
+              );
+            },
+          );
+  }
+
   Future<void> _showAddCategoryDialog(BuildContext context) async {
     final nameController = TextEditingController();
+    String selectedType = 'المقرر العلمي';
     bool isLoading = false;
 
     final result = await showDialog<bool>(
@@ -256,6 +284,28 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   hintText: 'أدخل اسم الفئة',
                 ),
                 enabled: !isLoading,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedType,
+                decoration: const InputDecoration(labelText: 'نوع الفئة'),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'المقرر العلمي',
+                    child: Text('المقرر العلمي'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'المقرر المهاري العملي',
+                    child: Text('المقرر المهاري العملي'),
+                  ),
+                ],
+                onChanged: isLoading
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          setState(() => selectedType = value);
+                        }
+                      },
               ),
               if (isLoading)
                 const Padding(
@@ -279,6 +329,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           final category = Category(
                             id: 'cat_${DateTime.now().millisecondsSinceEpoch}',
                             name: nameController.text,
+                            type: selectedType,
                             lessons: [],
                           );
                           await CategoryHelper.instance.addCategory(category);

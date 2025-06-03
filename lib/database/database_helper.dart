@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -32,7 +32,8 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE categories (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'المقرر العلمي'
       )
     ''');
 
@@ -71,12 +72,21 @@ class DatabaseHelper {
         )
       ''');
     }
+    if (oldVersion < 3) {
+      await db.execute(
+        'ALTER TABLE categories ADD COLUMN type TEXT NOT NULL DEFAULT "المقرر العلمي"',
+      );
+    }
   }
 
   // Category operations
   Future<String> insertCategory(Category category) async {
     final db = await database;
-    await db.insert('categories', {'id': category.id, 'name': category.name});
+    await db.insert('categories', {
+      'id': category.id,
+      'name': category.name,
+      'type': category.type,
+    });
     return category.id;
   }
 
@@ -87,6 +97,7 @@ class DatabaseHelper {
       return Category(
         id: maps[i]['id'],
         name: maps[i]['name'],
+        type: maps[i]['type'] ?? 'المقرر العلمي',
         lessons: [], // Will be populated separately
       );
     });

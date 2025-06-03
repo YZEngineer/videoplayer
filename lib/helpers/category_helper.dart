@@ -42,6 +42,7 @@ class CategoryHelper {
       Category(
         id: 'cat_1',
         name: 'أساسيات البرمجة',
+        type: 'المقرر العلمي',
         lessons: [
           Lesson(
             id: 'lesson_1_1',
@@ -62,6 +63,7 @@ class CategoryHelper {
       Category(
         id: 'cat_2',
         name: 'تطوير تطبيقات الموبايل',
+        type: 'المقرر العلمي',
         lessons: [
           Lesson(
             id: 'lesson_2_1',
@@ -82,6 +84,7 @@ class CategoryHelper {
       Category(
         id: 'cat_3',
         name: 'قواعد البيانات',
+        type: 'المقرر العلمي',
         lessons: [
           Lesson(
             id: 'lesson_3_1',
@@ -96,6 +99,49 @@ class CategoryHelper {
             description: 'تعلم عمليات إنشاء وقراءة وتحديث وحذف البيانات',
             videoId: 'bVOrIqeJ3XE',
             categoryId: 'cat_3',
+          ),
+        ],
+      ),
+      // فئات المقرر المهاري العملي
+      Category(
+        id: 'cat_4',
+        name: 'الذكاء الاصطناعي',
+        type: 'المقرر المهاري العملي',
+        lessons: [
+          Lesson(
+            id: 'lesson_4_1',
+            title: 'مقدمة في الذكاء الاصطناعي',
+            description: 'تعرف على أساسيات الذكاء الاصطناعي',
+            videoId: 'bVOrIqeJ3XE',
+            categoryId: 'cat_4',
+          ),
+          Lesson(
+            id: 'lesson_4_2',
+            title: 'تعلم الآلة',
+            description: 'تعلم أساسيات تعلم الآلة وتطبيقاته',
+            videoId: 'bVOrIqeJ3XE',
+            categoryId: 'cat_4',
+          ),
+        ],
+      ),
+      Category(
+        id: 'cat_5',
+        name: 'تطوير الويب',
+        type: 'المقرر المهاري العملي',
+        lessons: [
+          Lesson(
+            id: 'lesson_5_1',
+            title: 'HTML و CSS',
+            description: 'تعلم أساسيات تطوير الويب',
+            videoId: 'bVOrIqeJ3XE',
+            categoryId: 'cat_5',
+          ),
+          Lesson(
+            id: 'lesson_5_2',
+            title: 'JavaScript',
+            description: 'تعلم برمجة JavaScript وتطبيقاتها',
+            videoId: 'bVOrIqeJ3XE',
+            categoryId: 'cat_5',
           ),
         ],
       ),
